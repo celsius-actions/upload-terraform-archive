@@ -1,0 +1,25 @@
+name: "Upload terraform archive"
+inputs:
+  upload-url:
+    description: "TF Cloud upload url"
+    required: true
+  content-directory:
+    description: "Path to the directory with TF files"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - id: create-environment
+      run: |
+        UPLOAD_FILE_NAME="./upload-$(date +%s).tar.gz"
+        tar -zcvf "$UPLOAD_FILE_NAME" -C "${{ inputs.content-directory }}" .
+
+        curl \
+          --header "Content-Type: application/octet-stream" \
+          --request PUT \
+          --data-binary @"$UPLOAD_FILE_NAME" \
+          ${{ inputs.upload-url }}
+
+        rm "$UPLOAD_FILE_NAME"
+
+      shell: bash
